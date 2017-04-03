@@ -105,8 +105,11 @@ handle_udp_message(_MyID, {udp, Socket, IP, Port, Packet}, State) ->
     case dht_msg:decode(Packet) of
         {ok, {Tid, Type, Args}} ->
             handle_dht_message(Type, {Tid, Args}, Socket, IP, Port, State);
+        {ok, error, Reason} ->
+            ?DBG("handle_udp_message, ~p~n", [Reason]),
+            State;
         {error, Reason} ->
-            ?DBG("handle_udp_message, error: ~p, ~p~n", [Reason, Packet]),
+            ?DBG("handle_udp_message, error: ~p~n", [Reason]),
             State
     end.
 
