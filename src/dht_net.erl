@@ -144,6 +144,7 @@ handle_dht_message(q_get_peers, {Tid, Args}, Sock, IP, Port, #state{id = ID} = S
     Token = make_token(IP, Port),
     {ok, Msg} = dht_msg:encode_response({get_peers, Tid, {ID, Nodes, Token}}),
     send_msg(Sock, IP, Port, Msg),
+    dht_store:save(dht_id:to_hex(InfoHash), 0, 0, 0, 0),
     State;
 
 handle_dht_message(q_announce_peer, {_Tid, Args}, _Sock, IP, Port, State) ->
@@ -151,6 +152,7 @@ handle_dht_message(q_announce_peer, {_Tid, Args}, _Sock, IP, Port, State) ->
     dht_table:add(#node{id = NodeID, ip = IP, port = Port}),
     ?DBG("handle_get_query, announce_peer, InfoHash = ~p, IP = ~p, Port = ~p~n", [dht_id:to_hex(InfoHash), IP, Port]),
     ?DBG("handle_get_query, announce_peer, Implied = ~p, Port =~p~n", [Implied, Port]),
+    dht_store:save(dht_id:to_hex(InfoHash), IP, Port, Implied, Port),
     State;
 
 handle_dht_message(r_ping, {_Tid, {ID}}, _Sock, IP, Port, State) ->
