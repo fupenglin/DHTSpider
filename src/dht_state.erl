@@ -116,7 +116,6 @@ handle_node_timeout(Node, #state{timer = Timer} = State) ->
         true ->
             {LastTime, Ref, Cnt} = gb_trees:get(Node, Timer),
             TimeDiff = timer:now_diff(os:timestamp(), LastTime) div 1000,
-            ?DBG("handle_node_timeout, Node = ~p, Cnt = ~p, TimeDiff = ~p~n", [Node, Cnt, TimeDiff]),
             if
                 (Cnt > 3) and (TimeDiff > ?NODE_TIMEOUT) ->
                     dht_table:delete(Node),
