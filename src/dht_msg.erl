@@ -107,7 +107,10 @@ decode_msg_args(?MSG_TYPE_ANNOUNCE_PEER, DHTMsg) ->
     {ok, {dict, Args}} = dict:find(?KEY_A, DHTMsg),
     {ok, NodeID} = dict:find(?KEY_ID, Args),
     {ok, InfoHash} = dict:find(?KEY_INFO_HASH, Args),
-    {ok, Implied} = dict:find(?KEY_IMPLIED_PORT, Args),
+    case dict:find(?KEY_IMPLIED_PORT, Args) of
+        {ok, Value} -> Implied = binary_to_integer(Value);
+        _ -> Implied = 255
+    end,
     {ok, Port} = dict:find(?KEY_PORT, Args),
     {ok, Token} = dict:find(?KEY_TOKEN, Args),
     {ok, {dht_id:to_integer(NodeID), dht_id:to_integer(InfoHash), Token, Implied, Port}};
