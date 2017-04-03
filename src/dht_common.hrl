@@ -24,8 +24,7 @@
 -record(bucket, {min, max, nodes}).
 
 %%超级节点
--define(SUPER_NODES,
-    [#node{id = 0, ip = "router.bittorrent.com", port = 6881},
+-define(SUPER_NODES, [#node{id = 0, ip = "router.bittorrent.com", port = 6881},
     #node{id = 0, ip = "dht.transmissionbt.com", port = 6881},
     #node{id = 0, ip = "router.utorrent.com", port = 6881}]).
 
@@ -38,10 +37,12 @@
 -define(JOIN_INTERVAL, 1 * 60 * 1000).
 -define(PING_INTERVAL, 2 * 60 * 1000).
 -define(JOIN_CONDITION, 5000).
+-define(NODE_TIMEOUT, 2 * 60 * 1000).
 -define(DBG(Fmt, Args), io:format(Fmt, Args)).
 -else.
 -define(JOIN_INTERVAL, 5 * 60 * 1000).
 -define(PING_INTERVAL, 10 * 60 * 1000).
 -define(JOIN_CONDITION, 2000).
+-define(NODE_TIMEOUT, 5 * 60 * 1000).
 -define(DBG(Fmt, Args), ok).
 -endif.

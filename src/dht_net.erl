@@ -26,7 +26,7 @@
 -define(SERVER, ?MODULE).
 -define(MAX_TID, 10000).
 
--record(state, {id, socket, tid}).
+-record(state, {id, socket, tid, timer}).
 
 %%%===================================================================
 %%% API
@@ -74,8 +74,7 @@ handle_cast({join}, State) ->
 handle_cast(_Request, State) ->
     {noreply, State}.
 
-handle_info({udp, _Socket, IP, _Port, _Packet} = UdpMsg, #state{id = MyID} = State) ->
-    ?DBG("~p~n", [IP]),
+handle_info({udp, _Socket, _IP, _Port, _Packet} = UdpMsg, #state{id = MyID} = State) ->
     NewState = handle_udp_message(MyID, UdpMsg, State),
     {noreply, NewState};
 handle_info(_Info, State) ->
@@ -105,10 +104,9 @@ do_stop(#state{socket = Socket} = _State) ->
 handle_udp_message(_MyID, {udp, Socket, IP, Port, Packet}, State) ->
     case dht_msg:decode(Packet) of
         {ok, {Tid, Type, Args}} ->
-            ?DBG("Type = ~p~n", [Type]),
             handle_dht_message(Type, {Tid, Args}, Socket, IP, Port, State);
         {error, Reason} ->
-            ?DBG("handle_udp_message, error: ~p~n", [Reason]),
+            ?DBG("handle_udp_message, error: ~p, ~p~n", [Reason, Packet]),
             State
     end.
 
@@ -185,7 +183,7 @@ handle_join([Node | Rest], #state{id = ID} = State) ->
     handle_join(Rest, NewState).
 
 send_msg(Sock, IP, Port, Msg) ->
-    ?DBG("send msg:~p~n", [Msg]),
+    %%?DBG("send msg:~p~n", [Msg]),
     gen_udp:send(Sock, IP, Port, Msg).
 
 make_token(_IP, _Port) ->

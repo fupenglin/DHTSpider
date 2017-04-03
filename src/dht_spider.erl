@@ -15,8 +15,12 @@
 -export([start/0, stop/0]).
 
 start() ->
-    dht_table:start_link(?DEFAULT_NODE_ID),
-    dht_net:start_link(?DEFAULT_NODE_ID, ?DEFAULT_PORT).
+    {ok, _} = dht_state:start_link(?DEFAULT_NODE_ID),
+    {ok, _} = dht_table:start_link(?DEFAULT_NODE_ID),
+    {ok, _} = dht_net:start_link(?DEFAULT_NODE_ID, ?DEFAULT_PORT),
+    dht_net:join().
 
 stop() ->
-    dht_net:stop().
+    dht_net:stop(),
+    dht_table:stop(),
+    dht_state:stop().

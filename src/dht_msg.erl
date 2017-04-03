@@ -61,29 +61,33 @@ encode_response(Msg) ->
 
 %% 内部函数
 decode_msg({dict, DHTMsg}) ->
-    case dict:find(?KEY_Y, DHTMsg) of
-        {ok, ?KEY_Q} ->
-            case check_msg(?QUERY_MSG_KEY, DHTMsg) of
-                true ->
-                    {ok, Tid} = dict:find(?KEY_T, DHTMsg),
-                    {ok, Type} = dict:find(?KEY_Q, DHTMsg),
-                    {ok, Args} = decode_msg_args(Type, DHTMsg),
-                    {ok, {Tid, msg_type(Type), Args}};
-                false ->
-                    {error, "unknown dht msg"}
-            end;
-        {ok, ?KEY_R} ->
-            case check_msg(?RESPONSE_MSG_KEY, DHTMsg) of
-                true ->
-                    {ok, Tid} = dict:find(?KEY_T, DHTMsg),
-                    {ok, Args} = decode_msg_args(Tid, DHTMsg),
-                    {ok, {Tid, msg_type(Tid), Args}}
-            end;
-        {ok, ?KEY_E} ->
-            {ok, error, "protocol error."};
-        error ->
-            {error, "DHTMsg value <<y>> not found."}
-    end.
+    try
+        case dict:find(?KEY_Y, DHTMsg) of
+            {ok, ?KEY_Q} ->
+                case check_msg(?QUERY_MSG_KEY, DHTMsg) of
+                    true ->
+                        {ok, Tid} = dict:find(?KEY_T, DHTMsg),
+                        {ok, Type} = dict:find(?KEY_Q, DHTMsg),
+                        {ok, Args} = decode_msg_args(Type, DHTMsg),
+                        {ok, {Tid, msg_type(Type), Args}};
+                    false ->
+                        {error, "unknown dht msg"}
+                end;
+            {ok, ?KEY_R} ->
+                case check_msg(?RESPONSE_MSG_KEY, DHTMsg) of
+                    true ->
+                        {ok, Tid} = dict:find(?KEY_T, DHTMsg),
+                        {ok, Args} = decode_msg_args(Tid, DHTMsg),
+                        {ok, {Tid, msg_type(Tid), Args}}
+                end;
+            {ok, ?KEY_E} ->
+                {ok, error, "protocol error."};
+            error ->
+                {error, "DHTMsg value <<y>> not found."}
+        end
+    catch
+        _:Reason  -> {error, Reason}
+    end .
 
 decode_msg_args(?MSG_TYPE_FIND_NODE, DHTMsg) ->
     {ok, {dict, Args}} = dict:find(?KEY_A, DHTMsg),
@@ -131,7 +135,7 @@ decode_nodes(<<Header:26/binary, Tail/binary>>) ->
     [#node{id = ID, ip = {IP0, IP1, IP2, IP3}, port = Port} | decode_nodes(Tail)].
 
 encode_nodes([]) -> <<>>;
-encode_nodes([{ID, {IP0, IP1, IP2, IP3}, Port} | Tail]) ->
+encode_nodes([#node{id = ID, ip = {IP0, IP1, IP2, IP3}, port = Port} | Tail]) ->
     Node = <<ID:160, IP0:8, IP1:8, IP2:8, IP3:8, Port:16>>,
     Nodes = encode_nodes(Tail),
     <<Node/binary, Nodes/binary>>.

@@ -13,7 +13,7 @@
 -include("dht_common.hrl").
 
 %% API
--export([start_link/1, stop/0, add/1, delete/1, get_all/0, get_kclosest/2, get_size/0]).
+-export([start_link/1, stop/0, add/1, delete/1, get_all/0, get_kclosest/2, get_size/0, timeout/1]).
 
 %% gen_server callbacks
 -export([init/1,
@@ -46,7 +46,7 @@ add(Node) ->
     gen_server:cast(?SERVER, {add, Node}).
 
 delete(Node) ->
-    gen_server:cast(?SERVER, {delete, Node}).
+    gen_server:call(?SERVER, {delete, Node}).
 
 get_all() ->
     gen_server:call(?SERVER, {get_all}).
@@ -56,6 +56,9 @@ get_kclosest(ID, K) ->
 
 get_size() ->
     gen_server:call(?SERVER, {get_size}).
+
+timeout(Node) ->
+    gen_server:cast(?SERVER, {timeout, Node}).
 
 %%%===================================================================
 %%% gen_server callbacks
@@ -74,20 +77,27 @@ handle_call({get_kclosest, ID, Num}, _From, State) ->
 handle_call({get_size}, _From, State) ->
     Cnt = do_get_size(State#state.table),
     {reply, Cnt, State};
+handle_call({delete, Node}, _From, #state{table = Table} = State) ->
+    NTable = do_delete(Node, Table),
+    {reply, ok, State#state{table = NTable}};
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.
 
 handle_cast({add, #node{id = NodeID} = Node}, #state{id = MyID, table = Table} = State) ->
-    case NodeID == MyID of
+    case ((NodeID == MyID) or do_is_member(Node, Table)) of
         true ->
             NTable = Table;
         false ->
-            NTable = do_add(Node, Table)
+            {Res, NTable} = do_add(Node, Table),
+            case Res of
+                true -> dht_state:monitor(Node);
+                false -> ok
+            end
     end,
     {noreply, State#state{table = NTable}};
-handle_cast({delete, Node}, #state{table = Table} = State) ->
-    NTable = do_delete(Node, Table),
-    {noreply, State#state{table = NTable}};
+handle_cast({timeout, Node}, State) ->
+    do_time_out(Node),
+    {noreply, State};
 handle_cast({stop}, State) ->
     {stop, normal, State};
 handle_cast(_Request, State) ->
@@ -119,7 +129,7 @@ do_add(#node{id = NodeID} = Node, [#bucket{min = Min, max = Max, nodes = Nodes} 
     BucketLen = length(Nodes),
     if
         BucketLen < ?K ->
-            [H#bucket{nodes = [Node | Nodes]} | T];
+            {true, [H#bucket{nodes = [Node | Nodes]} | T]};
         (BucketLen == ?K) and ((Max - Min) > ?K) ->
             Mid = (Min + Max) div 2,
             Lower = [Tmp || #node{id = TmpID} = Tmp <- Nodes, ?IN_RANGE(TmpID, Min, Mid)],
@@ -129,10 +139,11 @@ do_add(#node{id = NodeID} = Node, [#bucket{min = Min, max = Max, nodes = Nodes} 
             NewTable = [LowerBucket, UpperBucket] ++ T,
             do_add(Node, NewTable);
         true ->
-            [H | T]
+            {false, [H | T]}
     end;
 do_add(Node, [H | T]) ->
-    [H | do_add(Node, T)].
+    {Res, NewNodes} = do_add(Node, T),
+    {Res, [H | NewNodes]}.
 
 do_delete(_, []) -> [];
 do_delete(#node{id = NodeID} = Node, [#bucket{min = Min, max = Max, nodes = Nodes} = H | T])
@@ -161,3 +172,13 @@ do_get_closest(ID, Num, Table) ->
 do_get_size([]) -> 0;
 do_get_size([#bucket{nodes = Nodes} | T]) ->
     length(Nodes) + do_get_size(T).
+
+do_is_member(_, []) -> false;
+do_is_member(#node{id = NodeID} = Node, [#bucket{min = Min, max = Max, nodes = Nodes} | _T])
+    when ?IN_RANGE(NodeID, Min, Max) ->
+    lists:member(Node, Nodes);
+do_is_member(Node, [_ | T]) ->
+    do_is_member(Node, T).
+
+do_time_out(Node) ->
+    dht_net:ping(Node).

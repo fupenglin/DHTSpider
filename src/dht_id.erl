@@ -29,7 +29,7 @@ min() ->
     0.
 %% max id
 max() ->
-    Max = list_to_binary([?MAX_BYTE_INT || _ <- lists:seq(1, ?MAX_BYTE_INT)]),
+    Max = list_to_binary([?MAX_BYTE_INT || _ <- lists:seq(1, ?ID_LENGTH)]),
     to_integer(Max).
 
 %% binary id or list id to integer id
