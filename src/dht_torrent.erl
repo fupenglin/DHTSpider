@@ -13,7 +13,7 @@
 -include("dht_common.hrl").
 
 %% API
--export([start_link/0, download_torrent/3]).
+-export([start_link/0, download_torrent/3, test/0]).
 
 %% gen_server callbacks
 -export([init/1,
@@ -39,6 +39,9 @@ start_link() ->
 
 download_torrent(InfoHash, IP, Port) ->
     gen_server:cast(?SERVER, {download, InfoHash, IP, Port}).
+
+test() ->
+    download_torrent(16#9107E31FD452786A401AECBBCCFC210C500732C7, {101,224,57,156}, 23424).
 
 %%%===================================================================
 %%% gen_server callbacks

@@ -109,6 +109,7 @@ handle_udp_message(_MyID, {udp, Socket, IP, Port, Packet}, State) ->
             ?DBG("handle_udp_message, ~p~n", [Reason]),
             State;
         {error, Reason} ->
+            ?DBG("handle_udp_message, error: ~p~n", [Packet]),
             ?DBG("handle_udp_message, error: ~p~n", [Reason]),
             State
     end.
@@ -188,7 +189,6 @@ handle_join([Node | Rest], #state{id = ID} = State) ->
     handle_join(Rest, NewState).
 
 send_msg(Sock, IP, Port, Msg) ->
-    %%?DBG("send msg:~p~n", [Msg]),
     gen_udp:send(Sock, IP, Port, Msg).
 
 make_token(_IP, _Port) ->
