@@ -94,7 +94,7 @@ handle_cast({add, #node{id = NodeID} = Node}, #state{id = MyID, table = Table} =
     {noreply, State#state{table = NTable}};
 handle_cast({delete, Node}, #state{table = Table} = State) ->
     NTable = do_delete(Node, Table),
-    {reply, State#state{table = NTable}};
+    {noreply, State#state{table = NTable}};
 handle_cast({timeout, Node}, State) ->
     do_time_out(Node),
     {noreply, State};

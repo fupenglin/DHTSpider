@@ -78,7 +78,9 @@ decode_msg({dict, DHTMsg}) ->
                     true ->
                         {ok, Tid} = dict:find(?KEY_T, DHTMsg),
                         {ok, Args} = decode_msg_args(Tid, DHTMsg),
-                        {ok, {Tid, msg_type(Tid), Args}}
+                        {ok, {Tid, msg_type(Tid), Args}};
+                    false ->
+                        {error, "unknown dht msg"}
                 end;
             {ok, ?KEY_E} ->
                 {ok, error, "protocol error."};
