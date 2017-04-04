@@ -37,7 +37,7 @@ stop() ->
     gen_server:cast(?SERVER, {stop}).
 
 monitor(Node) ->
-    gen_server:call(?SERVER, {monitor, Node}).
+    gen_server:cast(?SERVER, {monitor, Node}).
 
 size() ->
     gen_server:call(?SERVER, {size}).
@@ -49,15 +49,15 @@ size() ->
 init([ID]) ->
     do_init(ID).
 
-handle_call({monitor, Node}, _From,State) ->
-    NewState = update_monitor(Node, State),
-    {reply, ok, NewState};
 handle_call({size}, _From, #state{timer = Timer} = State) ->
     Size = gb_trees:size(Timer),
     {reply, Size, State};
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.
 
+handle_cast({monitor, Node}, State) ->
+    NewState = update_monitor(Node, State),
+    {noreply, NewState};
 handle_cast(_Request, State) ->
     {noreply, State}.
 

@@ -46,7 +46,7 @@ add(Node) ->
     gen_server:cast(?SERVER, {add, Node}).
 
 delete(Node) ->
-    gen_server:call(?SERVER, {delete, Node}).
+    gen_server:cast(?SERVER, {delete, Node}).
 
 get_all() ->
     gen_server:call(?SERVER, {get_all}).
@@ -77,9 +77,6 @@ handle_call({get_kclosest, ID, Num}, _From, State) ->
 handle_call({get_size}, _From, State) ->
     Cnt = do_get_size(State#state.table),
     {reply, Cnt, State};
-handle_call({delete, Node}, _From, #state{table = Table} = State) ->
-    NTable = do_delete(Node, Table),
-    {reply, ok, State#state{table = NTable}};
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.
 
@@ -95,6 +92,9 @@ handle_cast({add, #node{id = NodeID} = Node}, #state{id = MyID, table = Table} =
             end
     end,
     {noreply, State#state{table = NTable}};
+handle_cast({delete, Node}, #state{table = Table} = State) ->
+    NTable = do_delete(Node, Table),
+    {reply, State#state{table = NTable}};
 handle_cast({timeout, Node}, State) ->
     do_time_out(Node),
     {noreply, State};
