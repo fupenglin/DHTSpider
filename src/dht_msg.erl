@@ -110,7 +110,7 @@ decode_msg_args(?MSG_TYPE_ANNOUNCE_PEER, DHTMsg) ->
     {ok, NodeID} = dict:find(?KEY_ID, Args),
     {ok, InfoHash} = dict:find(?KEY_INFO_HASH, Args),
     case dict:find(?KEY_IMPLIED_PORT, Args) of
-        {ok, Value} -> Implied = erlang:binary_to_integer(Value);
+        {ok, Value} -> Implied = Value;
         _ -> Implied = 0
     end,
     {ok, Port} = dict:find(?KEY_PORT, Args),
