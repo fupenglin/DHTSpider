@@ -152,7 +152,7 @@ handle_dht_message(q_announce_peer, {_Tid, Args}, _Sock, IP, Port, State) ->
     dht_table:add(#node{id = NodeID, ip = IP, port = Port}),
     ?DBG("handle_get_query, announce_peer, InfoHash = ~p, IP = ~p, Port = ~p~n", [dht_id:to_hex(InfoHash), IP, Port]),
     ?DBG("handle_get_query, announce_peer, Implied = ~p, Port =~p~n", [Implied, Port1]),
-    dht_store:save(dht_id:to_hex(InfoHash), IP, Port, Implied, Port),
+    dht_store:save(dht_id:to_hex(InfoHash), IP, Port, Implied, Port1),
     State;
 
 handle_dht_message(r_ping, {_Tid, {ID}}, _Sock, IP, Port, State) ->
