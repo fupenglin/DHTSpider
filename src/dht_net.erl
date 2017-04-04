@@ -148,10 +148,10 @@ handle_dht_message(q_get_peers, {Tid, Args}, Sock, IP, Port, #state{id = ID} = S
     State;
 
 handle_dht_message(q_announce_peer, {_Tid, Args}, _Sock, IP, Port, State) ->
-    {NodeID, InfoHash, Implied, _Port, _Token} = Args,
+    {NodeID, InfoHash, _Token, Implied, Port1} = Args,
     dht_table:add(#node{id = NodeID, ip = IP, port = Port}),
     ?DBG("handle_get_query, announce_peer, InfoHash = ~p, IP = ~p, Port = ~p~n", [dht_id:to_hex(InfoHash), IP, Port]),
-    ?DBG("handle_get_query, announce_peer, Implied = ~p, Port =~p~n", [Implied, Port]),
+    ?DBG("handle_get_query, announce_peer, Implied = ~p, Port =~p~n", [Implied, Port1]),
     dht_store:save(dht_id:to_hex(InfoHash), IP, Port, Implied, Port),
     State;
 
