@@ -109,7 +109,6 @@ handle_udp_message(_MyID, {udp, Socket, IP, Port, Packet}, State) ->
             ?DBG("handle_udp_message, ~p~n", [Reason]),
             State;
         {error, Reason} ->
-            ?DBG("handle_udp_message, error: ~p~n", [Packet]),
             ?DBG("handle_udp_message, error: ~p~n", [Reason]),
             State
     end.

@@ -52,7 +52,7 @@ get_all() ->
     gen_server:call(?SERVER, {get_all}).
 
 get_kclosest(ID, K) ->
-    gen_server:call(?SERVER, {get_kclosest, ID, K}).
+    gen_server:call(?SERVER, {get_kclosest, ID, K, infinity}).
 
 get_size() ->
     gen_server:call(?SERVER, {get_size}).
