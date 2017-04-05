@@ -26,7 +26,7 @@
 -define(SERVER, ?MODULE).
 -define(IN_RANGE(X, Min, Max), ((X >= Min) and (X < Max))).
 
--record(state, {id, table}).
+-record(state, {id, table, timer}).
 
 %%%===================================================================
 %%% API
@@ -98,11 +98,15 @@ handle_cast({delete, Node}, #state{table = Table} = State) ->
 handle_cast({timeout, Node}, State) ->
     do_time_out(Node),
     {noreply, State};
-handle_cast({stop}, State) ->
+handle_cast({stop}, #state{timer = Ref} = State) ->
+    timer:cancel(Ref),
     {stop, normal, State};
 handle_cast(_Request, State) ->
     {noreply, State}.
 
+handle_info({check}, #state{table = Table} = State) ->
+    do_check_table(Table),
+    {noreply, State};
 handle_info(_Info, State) ->
     {noreply, State}.
 
@@ -120,7 +124,8 @@ do_init(ID) ->
     Min = dht_id:min(),
     Max = dht_id:max(),
     Table = [#bucket{min = Min, max = Max, nodes = []}],
-    State = #state{id = ID, table = Table},
+    {ok, Ref} = timer:send_interval(?CHECK_INTERVAL, {check}),
+    State = #state{id = ID, table = Table, timer = Ref},
     {ok, State}.
 
 do_add(#node{id = NodeID} = Node, [#bucket{min = Min, max = Max, nodes = Nodes} = H | T])
@@ -182,3 +187,13 @@ do_is_member(Node, [_ | T]) ->
 
 do_time_out(Node) ->
     dht_net:ping(Node).
+
+do_check_table(Table) ->
+    TableSize = do_get_size(Table),
+    ?DBG("do_check_table, size = ~p~n", [TableSize]),
+    case  TableSize > 200 of
+        false ->
+            dht_net:join();
+        true -> ok
+    end,
+    ok.

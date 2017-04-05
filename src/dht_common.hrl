@@ -34,15 +34,19 @@
 -define(DEBUG, 1).
 %% 时间间隔
 -ifdef(DEBUG).
--define(JOIN_INTERVAL, 1 * 60 * 1000).
--define(PING_INTERVAL, 2 * 60 * 1000).
--define(JOIN_CONDITION, 5000).
--define(NODE_TIMEOUT, 2 * 60 * 1000).
+-define(JOIN_INTERVAL, 5 * 60 * 1000).
+-define(PING_INTERVAL, 10 * 60 * 1000).
+-define(CHECK_INTERVAL, 5 * 60 * 1000).
+-define(NODE_TIMEOUT, 5 * 60 * 1000).
+-define(JOIN_CONDITION_MAX, 2000).
+-define(JOIN_CONDITION_MIN, 200).
 -define(DBG(Fmt, Args), io:format(Fmt, Args)).
 -else.
 -define(JOIN_INTERVAL, 5 * 60 * 1000).
 -define(PING_INTERVAL, 10 * 60 * 1000).
--define(JOIN_CONDITION, 2000).
+-define(CHECK_INTERVAL, 2000).
 -define(NODE_TIMEOUT, 5 * 60 * 1000).
+-define(JOIN_CONDITION_MAX, 2000).
+-define(JOIN_CONDITION_MIN, 200).
 -define(DBG(Fmt, Args), ok).
 -endif.

@@ -64,13 +64,9 @@ handle_cast({find_node, TargetID, Node}, State) ->
     NewState = handle_make_query(find_node, Node, TargetID, State),
     {noreply, NewState};
 handle_cast({join}, State) ->
-    NewState = case dht_table:get_size() > ?JOIN_CONDITION of
-        true -> State;
-        false ->
-            State1 = handle_join(?SUPER_NODES, State),
-            handle_join(dht_table:get_all(), State1)
-    end,
-    {noreply, NewState};
+    State1 = handle_join(?SUPER_NODES, State),
+    State2 = handle_join(dht_table:get_all(), State1),
+    {noreply, State2};
 handle_cast(_Request, State) ->
     {noreply, State}.
 
